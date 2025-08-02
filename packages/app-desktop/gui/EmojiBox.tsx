@@ -20,10 +20,10 @@ export default (props: Props) => {
 			return fontSizeCache_[cacheKey];
 		}
 
-		// Set the emoji font size so that it fits within the specified width
-		// and height. In fact, currently it only looks at the height.
+		// Set the emoji font size start at 75% of the container height
+		// so new emojis don't overshoot
 
-		let spanFontSize = props.height;
+		let spanFontSize = Math.round(props.height * 0.75);
 
 		const span = document.createElement('span');
 		span.innerText = props.emoji;
