@@ -48,7 +48,7 @@ const LayoutItemContainer: React.FC<Props> = ({
 			const textWidth = measureElement.offsetWidth;
 			document.body.removeChild(measureElement);
 
-			// Multiply icon 4 times for icon width and padding
+			// Multiply icon 6 times for icon width and padding
 			return textWidth + iconWidth * 6;
 		}
 		return itemMinWidth;
