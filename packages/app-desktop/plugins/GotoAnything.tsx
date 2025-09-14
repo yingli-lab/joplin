@@ -163,7 +163,7 @@ class DialogComponent extends React.PureComponent<Props, State> {
 	private itemListRef: any;
 	private listUpdateQueue_: AsyncActionQueue;
 	private markupToHtml_: MarkupToHtml;
-	private userCallback_: UserDataCallback|null = null;
+	private userCallback_: UserDataCallback | null = null;
 	private mode_: Mode;
 
 	public constructor(props: Props) {
@@ -244,13 +244,17 @@ class DialogComponent extends React.PureComponent<Props, State> {
 			userSelect: 'none',
 		};
 
-		const rowTitleStyle = { ...rowTextStyle, fontSize: rowTextStyle.fontSize * 1.4,
+		const rowTitleStyle = {
+			...rowTextStyle, fontSize: rowTextStyle.fontSize * 1.4,
 			marginBottom: this.state.resultsInBody ? 6 : 4,
-			color: theme.colorFaded };
+			color: theme.colorFaded,
+		};
 
-		const rowFragmentsStyle = { ...rowTextStyle, fontSize: rowTextStyle.fontSize * 1.2,
+		const rowFragmentsStyle = {
+			...rowTextStyle, fontSize: rowTextStyle.fontSize * 1.2,
 			marginBottom: this.state.resultsInBody ? 8 : 6,
-			color: theme.colorFaded };
+			color: theme.colorFaded,
+		};
 
 		this.styles_[styleKey].rowSelected = { ...this.styles_[styleKey].row, backgroundColor: theme.selectedColor };
 		this.styles_[styleKey].rowPath = rowTextStyle;
@@ -552,7 +556,17 @@ class DialogComponent extends React.PureComponent<Props, State> {
 				noteId: item.id,
 			});
 
+			setTimeout(() => {
+				const noteList = document.getElementById('notes-list');
+				const selectedNote = document.querySelector('.note-list-item-wrapper[aria-selected="true"]');
+
+				if (noteList && selectedNote) {
+					selectedNote.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				}
+			}, 50);
+
 			CommandService.instance().scheduleExecute('focusElement', 'noteBody');
+			CommandService.instance().scheduleExecute('scrollToSelectedNote', item.id);
 		} else if (this.state.listType === BaseModel.TYPE_TAG) {
 			logger.info('gotoItem: tag', item);
 
@@ -673,7 +687,7 @@ class DialogComponent extends React.PureComponent<Props, State> {
 	}
 
 	private calculateMaxHeight(itemHeight: number) {
-		const listContainer: HTMLElement|null = this.itemListRef.current?.container;
+		const listContainer: HTMLElement | null = this.itemListRef.current?.container;
 		const containerWindow = listContainer?.ownerDocument?.defaultView ?? window;
 		const maxItemCount = Math.floor((0.7 * containerWindow.innerHeight) / itemHeight);
 		return maxItemCount * itemHeight;

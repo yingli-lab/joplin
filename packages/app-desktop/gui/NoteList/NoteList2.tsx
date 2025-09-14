@@ -18,6 +18,7 @@ import useOnNoteClick from './utils/useOnNoteClick';
 import useMoveNote from './utils/useMoveNote';
 import useOnKeyDown from './utils/useOnKeyDown';
 import * as focusElementNoteList from './commands/focusElementNoteList';
+import * as scrollToSelectedNote from './commands/scrollToSelectedNote';
 import CommandService from '@joplin/lib/services/CommandService';
 import useDragAndDrop from './utils/useDragAndDrop';
 import { itemIsInTrash } from '@joplin/lib/services/trash';
@@ -33,12 +34,18 @@ import useOnNoteDoubleClick from './utils/useOnNoteDoubleClick';
 
 const commands = {
 	focusElementNoteList,
+	scrollToSelectedNote,
 };
 
 const NoteList = (props: Props) => {
 	const listRef = useRef<HTMLDivElement>(null);
 	const itemRefs = useRef<Record<string, HTMLDivElement>>({});
 	const listRenderer = props.listRenderer;
+	const notesRef = React.useRef(props.notes);
+
+	React.useEffect(() => {
+		notesRef.current = props.notes;
+	}, [props.notes]);
 
 	const itemSize: Size = useMemo(() => {
 		return {
@@ -125,11 +132,24 @@ const NoteList = (props: Props) => {
 	useItemCss(listRenderer.itemCss);
 
 	useEffect(() => {
-		CommandService.instance().registerRuntime(commands.focusElementNoteList.declaration.name, commands.focusElementNoteList.runtime(focusNote));
+		const cs = CommandService.instance();
+
+		try {
+			cs.registerDeclaration(commands.scrollToSelectedNote.declaration);
+		} catch (_e) { /* no-op if already registered */ }
+
+		cs.registerRuntime(
+			commands.scrollToSelectedNote.declaration.name,
+			commands.scrollToSelectedNote.runtime(makeItemIndexVisible, () => notesRef.current),
+		);
+
+		cs.registerRuntime(commands.focusElementNoteList.declaration.name, commands.focusElementNoteList.runtime(focusNote));
+
 		return () => {
-			CommandService.instance().unregisterRuntime(commands.focusElementNoteList.declaration.name);
+			cs.unregisterRuntime(commands.scrollToSelectedNote.declaration.name);
+			cs.unregisterRuntime(commands.focusElementNoteList.declaration.name);
 		};
-	}, [focusNote]);
+	}, [makeItemIndexVisible, focusNote]);
 
 	const onItemContextMenu = useOnContextMenu(
 		props.selectedNoteIds,
